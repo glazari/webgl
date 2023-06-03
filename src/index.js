@@ -1,3 +1,7 @@
+import { mat4  } from 'gl-matrix';
+
+let m4 = mat4.create();
+console.log(m4);
 
 function initialize_webgl(canvas) {
     var gl = canvas.getContext('webgl');
@@ -33,7 +37,7 @@ function create_vertex_shader(gl) {
     return vertShader;
 }
 
-function create_fragment_shader(gl, color) {
+function create_fragment_shader(gl) {
     var fragCode = `
     precision mediump float;
     varying vec3 fragColor;
@@ -84,7 +88,14 @@ function main() {
     // Get a reference to the canvas
     var canvas = document.getElementById('canvas');
     var gl = initialize_webgl(canvas); 
+
+    // Create vertex and fragment shaders
+    var vertShader = create_vertex_shader(gl);
+    var fragShader = create_fragment_shader(gl);
+    var shaderProgram = create_shader_program(gl, vertShader, fragShader);
+    gl.useProgram(shaderProgram);
     
+    /*======= Associating shaders to buffer objects =======*/
     var triangleVertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexBuffer);
     var triangleVertices = [
@@ -94,14 +105,6 @@ function main() {
     ];
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, null);
-
-    // Create vertex and fragment shaders
-    var vertShader = create_vertex_shader(gl);
-    var fragShader = create_fragment_shader(gl);
-    var shaderProgram = create_shader_program(gl, vertShader, fragShader);
-    gl.useProgram(shaderProgram);
-    
-    /*======= Associating shaders to buffer objects =======*/
     
     // Bind vertex buffer object
     gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexBuffer);
@@ -118,7 +121,7 @@ function main() {
     /*============ Drawing the triangle =============*/
     
     // Clear the canvas
-    gl.clearColor(...MAGENTA, 1.0);
+    gl.clearColor(...BLACK, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     // Draw the triangle
     gl.drawArrays(gl.TRIANGLES, 0, 3);
