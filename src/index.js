@@ -100,19 +100,84 @@ function main() {
     gl.useProgram(shaderProgram);
 
     /*======= Associating shaders to buffer objects =======*/
-    var triangleVertexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexBuffer);
-    var triangleVertices = [
+    var cubeVertices = [
         // X, Y, Z     R, G, B
-        0.0, 0.5, 0.0, ...RED,
-        -0.5, -0.5, 0.0, ...GREEN,
-        0.5, -0.5, 0.0, ...BLUE
+        // Top face
+        -0.5, 0.5, -0.5, ...RED,
+        -0.5, 0.5, 0.5, ...RED,
+        0.5, 0.5, 0.5, ...RED,
+        0.5, 0.5, -0.5, ...RED,
+
+        // Front face
+        -0.5, -0.5, 0.5, ...YELLOW,
+        -0.5, 0.5, 0.5, ...YELLOW,
+        0.5, 0.5, 0.5, ...YELLOW,
+        0.5, -0.5, 0.5, ...YELLOW,
+
+        // Left face
+        -0.5, -0.5, -0.5, ...GREEN,
+        -0.5, 0.5, -0.5, ...GREEN,
+        -0.5, 0.5, 0.5, ...GREEN,
+        -0.5, -0.5, 0.5, ...GREEN,
+
+        // Bottom face
+        -0.5, -0.5, -0.5, ...ORANGE,
+        -0.5, -0.5, 0.5, ...ORANGE,
+        0.5, -0.5, 0.5, ...ORANGE,
+        0.5, -0.5, -0.5, ...ORANGE,
+
+        // Back face
+        -0.5, -0.5, -0.5, ...WHITE,
+        -0.5, 0.5, -0.5, ...WHITE,
+        0.5, 0.5, -0.5, ...WHITE,
+        0.5, -0.5, -0.5, ...WHITE,
+
+        // Right face
+        0.5, -0.5, -0.5, ...BLUE,
+        0.5, 0.5, -0.5, ...BLUE,
+        0.5, 0.5, 0.5, ...BLUE,
+        0.5, -0.5, 0.5, ...BLUE
     ];
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(triangleVertices), gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, null);
+
+    var boxIndices = [
+        // Top
+        0, 1, 2,
+        0, 2, 3,
+
+        // Bottom
+        4, 5, 6,
+        4, 6, 7,
+
+        // Front
+        8, 9, 10,
+        8, 10, 11,
+
+        // Back
+        12, 14, 13,
+        12, 15, 16,
+
+        // Left
+        16, 17, 18,
+        16, 18, 19,
+
+        // Right
+        20, 22, 21,
+        20, 23, 22,
+    ];
+
+
+    var boxVertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, boxVertexBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cubeVertices), gl.STATIC_DRAW);
+
+    var boxIndexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, boxIndexBuffer);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(boxIndices), gl.STATIC_DRAW);
+
+
 
     // Bind vertex buffer object
-    gl.bindBuffer(gl.ARRAY_BUFFER, triangleVertexBuffer);
+    gl.bindBuffer(gl.ARRAY_BUFFER, boxVertexBuffer);
     // Get the attribute location
     var coord = gl.getAttribLocation(shaderProgram, "coordinates");
     var color = gl.getAttribLocation(shaderProgram, "vertColor");
@@ -183,7 +248,12 @@ function main() {
 
         gl.clearColor(...BLACK, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-        gl.drawArrays(gl.TRIANGLES, 0, 3);
+        gl.drawElements(
+            gl.TRIANGLES,      // Primitive type
+            boxIndices.length, // Number of elements to render
+            gl.UNSIGNED_SHORT, // Type of elements 
+            0                  // Offset to the first element
+        );
         requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
