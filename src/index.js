@@ -103,40 +103,40 @@ function main() {
     var cubeVertices = [
         // X, Y, Z     R, G, B
         // Top face
-        -0.5, 0.5, -0.5, ...RED,
-        -0.5, 0.5, 0.5, ...RED,
-        0.5, 0.5, 0.5, ...RED,
-        0.5, 0.5, -0.5, ...RED,
+        -1, 1, -1, ...RED,
+        -1, 1, 1, ...RED,
+        1, 1, 1, ...RED,
+        1, 1, -1, ...RED,
 
         // Front face
-        -0.5, -0.5, 0.5, ...YELLOW,
-        -0.5, 0.5, 0.5, ...YELLOW,
-        0.5, 0.5, 0.5, ...YELLOW,
-        0.5, -0.5, 0.5, ...YELLOW,
+        -1, 1, 1, ...YELLOW,
+        -1, -1, 1, ...YELLOW,
+        1, -1, 1, ...YELLOW,
+        1, 1, 1, ...YELLOW,
 
         // Left face
-        -0.5, -0.5, -0.5, ...GREEN,
-        -0.5, 0.5, -0.5, ...GREEN,
-        -0.5, 0.5, 0.5, ...GREEN,
-        -0.5, -0.5, 0.5, ...GREEN,
+        -1, -1, -1, ...GREEN,
+        -1, 1, -1, ...GREEN,
+        -1, 1, 1, ...GREEN, 
+        -1, -1, 1, ...GREEN,
 
         // Bottom face
-        -0.5, -0.5, -0.5, ...ORANGE,
-        -0.5, -0.5, 0.5, ...ORANGE,
-        0.5, -0.5, 0.5, ...ORANGE,
-        0.5, -0.5, -0.5, ...ORANGE,
+        -1, -1, -1, ...ORANGE,
+        -1, -1, 1, ...ORANGE,
+        1, -1, 1, ...ORANGE,
+        1, -1, -1, ...ORANGE,
 
         // Back face
-        -0.5, -0.5, -0.5, ...WHITE,
-        -0.5, 0.5, -0.5, ...WHITE,
-        0.5, 0.5, -0.5, ...WHITE,
-        0.5, -0.5, -0.5, ...WHITE,
+        -1, -1, -1, ...WHITE,
+        -1, 1, -1, ...WHITE,
+        1, 1, -1, ...WHITE,
+        1, -1, -1, ...WHITE,
 
         // Right face
-        0.5, -0.5, -0.5, ...BLUE,
-        0.5, 0.5, -0.5, ...BLUE,
-        0.5, 0.5, 0.5, ...BLUE,
-        0.5, -0.5, 0.5, ...BLUE
+        1, -1, -1, ...BLUE,
+        1, 1, -1, ...BLUE,
+        1, 1, 1, ...BLUE,
+        1, -1, 1, ...BLUE
     ];
 
     var boxIndices = [
@@ -144,7 +144,7 @@ function main() {
         0, 1, 2,
         0, 2, 3,
 
-        // Bottom
+        // Front
         4, 5, 6,
         4, 6, 7,
 
@@ -153,12 +153,12 @@ function main() {
         8, 10, 11,
 
         // Back
-        12, 14, 13,
-        12, 15, 16,
+        12, 13, 14,
+        12, 15, 14,
 
         // Left
-        16, 17, 18,
-        16, 18, 19,
+        16, 18, 17,
+        16, 19, 18,
 
         // Right
         20, 22, 21,
@@ -166,6 +166,7 @@ function main() {
     ];
 
 
+    gl.enable(gl.DEPTH_TEST);
     var boxVertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, boxVertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cubeVertices), gl.STATIC_DRAW);
@@ -208,7 +209,7 @@ function main() {
     mat4.identity(worldMatrix);
     mat4.lookAt(
         viewMatrix, // Output matrix
-        [0, 0, -2], // Eye position
+        [0, 0, -5], // Eye position
         [0, 0, 0], // Target position
         [0, 1, 0] // Up direction
     );
@@ -242,7 +243,7 @@ function main() {
             worldMatrix, // Destination matrix 
             identityMatrix, // Matrix to rotate
             angle,  // Amount to rotate in radians
-            [0, 1, 0] // Axis to rotate around
+            [1, 1, -1] // Axis to rotate around
         );
         gl.uniformMatrix4fv(mWorld, false, worldMatrix);
 
