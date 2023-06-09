@@ -10,6 +10,12 @@ function initialize_webgl(canvas) {
         alert('WebGL not supported!');
     }
 
+    // stop backface from rendering
+    gl.enable(gl.DEPTH_TEST); 
+    //gl.enable(gl.CULL_FACE); 
+    //gl.cullFace(gl.BACK);
+    gl.frontFace(gl.CCW);
+
     return gl;
 }
 
@@ -166,7 +172,6 @@ function main() {
     ];
 
 
-    gl.enable(gl.DEPTH_TEST);
     var boxVertexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, boxVertexBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(cubeVertices), gl.STATIC_DRAW);
@@ -234,17 +239,17 @@ function main() {
 
     /*============ Drawing the triangle =============*/
 
+    var xRotationMatrix = mat4.create();
+    var yRotationMatrix = mat4.create();
+
     var identityMatrix = mat4.create();
     mat4.identity(identityMatrix);
     var angle = 0;
     var loop = function () {
         angle = performance.now() / 1000 / 6 * 2 * Math.PI;
-        mat4.rotate(
-            worldMatrix, // Destination matrix 
-            identityMatrix, // Matrix to rotate
-            angle,  // Amount to rotate in radians
-            [1, 1, -1] // Axis to rotate around
-        );
+        mat4.rotate(xRotationMatrix, identityMatrix, angle, [1, 0, 0]);
+        mat4.rotate(yRotationMatrix, identityMatrix, angle / 4, [0, 1, 0]);
+        mat4.mul(worldMatrix, xRotationMatrix, yRotationMatrix);
         gl.uniformMatrix4fv(mWorld, false, worldMatrix);
 
         gl.clearColor(...BLACK, 1.0);
