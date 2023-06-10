@@ -8,3 +8,14 @@ npm install
 
 npx webpack
 ```
+
+# Development server
+
+Because the javascript file reads an image
+there is a CORS issue when running the index.html file directly from the file system.
+So, to run the index.html file, you need to run a development server.
+To run a development server, run:
+
+```bash
+npx http-server
+```

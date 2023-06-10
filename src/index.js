@@ -1,9 +1,6 @@
 import { mat4 } from 'gl-matrix';
 import { glMatrix } from 'gl-matrix';
 
-let m4 = mat4.create();
-console.log(m4);
-
 function initialize_webgl(canvas) {
     var gl = canvas.getContext('webgl');
     if (!gl) {
@@ -24,13 +21,14 @@ function create_vertex_shader(gl) {
     var vertCode = `
     precision mediump float;
     attribute vec3 coordinates;
-    attribute vec3 vertColor;
+    attribute vec2 textureCoord;
+    varying vec2 fragTextureCoord;
+
     uniform mat4 mWorld;
     uniform mat4 mView;
     uniform mat4 mProj;
-    varying vec3 fragColor;
     void main(void) {
-        fragColor = vertColor;
+        fragTextureCoord = textureCoord;
         gl_Position = mProj * mView * mWorld * vec4(coordinates, 1.0);
     }`;
 
@@ -50,9 +48,12 @@ function create_vertex_shader(gl) {
 function create_fragment_shader(gl) {
     var fragCode = `
     precision mediump float;
-    varying vec3 fragColor;
+
+    varying vec2 fragTextureCoord;
+    uniform sampler2D sampler;
+
     void main(void) {
-        gl_FragColor = vec4(fragColor, 1.0);
+        gl_FragColor = texture2D(sampler, fragTextureCoord);
     }`;
 
     var fragShader = gl.createShader(gl.FRAGMENT_SHADER);
@@ -94,7 +95,7 @@ const CYAN = [0.0, 1.0, 1.0];
 const MAGENTA = [1.0, 0.0, 1.0];
 const ORANGE = [1.0, 0.5, 0.0];
 
-function main() {
+function InitDemo() {
     // Get a reference to the canvas
     var canvas = document.getElementById('canvas');
     var gl = initialize_webgl(canvas);
@@ -107,42 +108,42 @@ function main() {
 
     /*======= Associating shaders to buffer objects =======*/
     var cubeVertices = [
-        // X, Y, Z     R, G, B
+        // X, Y, Z     U, V
         // Top face
-        -1, 1, -1, ...RED,
-        -1, 1, 1, ...RED,
-        1, 1, 1, ...RED,
-        1, 1, -1, ...RED,
+        -1, 1, -1,     0, 0,
+        -1, 1, 1,      0, 1,
+        1, 1, 1,       1, 1,
+        1, 1, -1,      1, 0,
 
         // Front face
-        -1, 1, 1, ...YELLOW,
-        -1, -1, 1, ...YELLOW,
-        1, -1, 1, ...YELLOW,
-        1, 1, 1, ...YELLOW,
+        -1, 1, 1,      0, 1, 
+        -1, -1, 1,     0, 0,
+        1, -1, 1,      1, 0,
+        1, 1, 1,       1, 1,
 
         // Left face
-        -1, -1, -1, ...GREEN,
-        -1, 1, -1, ...GREEN,
-        -1, 1, 1, ...GREEN, 
-        -1, -1, 1, ...GREEN,
+        -1, -1, -1,    0, 0,
+        -1, 1, -1,     1, 0,
+        -1, 1, 1,      1, 1,
+        -1, -1, 1,     0, 1,
 
         // Bottom face
-        -1, -1, -1, ...ORANGE,
-        -1, -1, 1, ...ORANGE,
-        1, -1, 1, ...ORANGE,
-        1, -1, -1, ...ORANGE,
+        -1, -1, -1,    0, 0,
+        -1, -1, 1,     0, 1,
+        1, -1, 1,      1, 1,
+        1, -1, -1,     1, 0,
 
         // Back face
-        -1, -1, -1, ...WHITE,
-        -1, 1, -1, ...WHITE,
-        1, 1, -1, ...WHITE,
-        1, -1, -1, ...WHITE,
+        -1, -1, -1,    0, 0,
+        -1, 1, -1,     0, 1,
+        1, 1, -1,      1, 1,
+        1, -1, -1,     1, 0,
 
         // Right face
-        1, -1, -1, ...BLUE,
-        1, 1, -1, ...BLUE,
-        1, 1, 1, ...BLUE,
-        1, -1, 1, ...BLUE
+        1, -1, -1,     0, 0,
+        1, 1, -1,      1, 0, 
+        1, 1, 1,       1, 1, 
+        1, -1, 1,      0, 1
     ];
 
     var boxIndices = [
@@ -186,20 +187,45 @@ function main() {
     gl.bindBuffer(gl.ARRAY_BUFFER, boxVertexBuffer);
     // Get the attribute location
     var coord = gl.getAttribLocation(shaderProgram, "coordinates");
-    var color = gl.getAttribLocation(shaderProgram, "vertColor");
+    var textureCoord = gl.getAttribLocation(shaderProgram, "textureCoord");
     // Point an attribute to the currently bound VBO
     gl.vertexAttribPointer(
         coord, // Attribute location
         3, // Number of elements per attribute
         gl.FLOAT, // Type of elements
         false, // Normalized
-        6 * Float32Array.BYTES_PER_ELEMENT, // Size of an individual vertex
+        5 * Float32Array.BYTES_PER_ELEMENT, // Size of an individual vertex
         0 // Offset from the beginning of a single vertex to this attribute
     );
-    gl.vertexAttribPointer(color, 3, gl.FLOAT, false, 6 * Float32Array.BYTES_PER_ELEMENT, 3 * Float32Array.BYTES_PER_ELEMENT);
+    gl.vertexAttribPointer(textureCoord, 2, gl.FLOAT, false, 5 * Float32Array.BYTES_PER_ELEMENT, 3 * Float32Array.BYTES_PER_ELEMENT);
     // Enable the attribute
     gl.enableVertexAttribArray(coord);
-    gl.enableVertexAttribArray(color);
+    gl.enableVertexAttribArray(textureCoord);
+
+
+    //
+    // Create texture 
+    //
+    var boxTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, boxTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); // Prevents s-coordinate wrapping (repeating).
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE); // Prevents t-coordinate wrapping (repeating).
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); // Linear filtering
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); // Linear filtering
+    
+    var image = document.getElementById('crate-texture');
+    console.log(image);
+
+    gl.texImage2D(
+        gl.TEXTURE_2D, // Type of textureCoord
+        0, // Level of detail
+        gl.RGBA, // Format
+        gl.RGBA, // Format
+        gl.UNSIGNED_BYTE, // Type of textureCoord data
+        document.getElementById('crate-texture') // Image data
+    );
+
+    gl.bindTexture(gl.TEXTURE_2D, null);
 
 
     // Get the uniform locations
@@ -252,7 +278,11 @@ function main() {
         mat4.mul(worldMatrix, xRotationMatrix, yRotationMatrix);
         gl.uniformMatrix4fv(mWorld, false, worldMatrix);
 
-        gl.clearColor(...BLACK, 1.0);
+        gl.clearColor(...WHITE, 1.0);
+
+        gl.bindTexture(gl.TEXTURE_2D, boxTexture);
+        gl.activeTexture(gl.TEXTURE0);
+
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
         gl.drawElements(
             gl.TRIANGLES,      // Primitive type
@@ -265,4 +295,4 @@ function main() {
     requestAnimationFrame(loop);
 }
 
-main();
+window.addEventListener("load", InitDemo);
